@@ -1,16 +1,16 @@
 import typing
+import json
 from datetime import datetime, timedelta, timezone
 
 from pyironscales.clients.base_client import IronscalesClient
 from pyironscales.config import Config
 
 if typing.TYPE_CHECKING:
-    from pyironscales.endpoints.ironscales.SurveysEndpoint import SurveysEndpoint
-    from pyironscales.endpoints.ironscales.AnswersEndpoint import AnswersEndpoint
-    from pyironscales.endpoints.ironscales.CustomersEndpoint import CustomersEndpoint
-    from pyironscales.endpoints.ironscales.QuestionsEndpoint import QuestionsEndpoint
-    from pyironscales.endpoints.ironscales.TeamMembersEndpoint import TeamMembersEndpoint
-    from pyironscales.endpoints.ironscales.ResponsesEndpoint import ResponsesEndpoint
+    from pyironscales.endpoints.ironscales.CampaignsEndpoint import CampaignsEndpoint
+    from pyironscales.endpoints.ironscales.CompanyEndpoint import CompanyEndpoint
+    from pyironscales.endpoints.ironscales.EmailsEndpoint import EmailsEndpoint
+    from pyironscales.endpoints.ironscales.IncidentEndpoint import IncidentEndpoint
+    from pyironscales.endpoints.ironscales.IntegrationsEndpoint import IntegrationsEndpoint
 
 
 class IronscalesAPIClient(IronscalesClient):
@@ -22,7 +22,7 @@ class IronscalesAPIClient(IronscalesClient):
     def __init__(
         self,
         privatekey: str,
-        scope: str,
+        scopes: list,
     ) -> None:
         """
         Initializes the client with the given credentials.
@@ -31,7 +31,7 @@ class IronscalesAPIClient(IronscalesClient):
             privatekey (str): Your Ironscales API private key.
         """
         self.privatekey: str = privatekey
-        self.scope: list = scope
+        self.scopes: list = json.loads(scopes) if isinstance(json.loads(scopes), list) else [json.loads(scopes)]
         self.token_expiry_time: datetime = datetime.now(tz=timezone.utc)
 
         # Grab first access token
@@ -39,10 +39,34 @@ class IronscalesAPIClient(IronscalesClient):
 
     # Initializing endpoints
     @property
-    def surveys(self) -> "SurveysEndpoint":
-        from pyironscales.endpoints.ironscales.SurveysEndpoint import SurveysEndpoint
+    def campaigns(self) -> "CampaignsEndpoint":
+        from pyironscales.endpoints.ironscales.CampaignsEndpoint import CampaignsEndpoint
 
-        return SurveysEndpoint(self)
+        return CampaignsEndpoint(self)
+
+    @property
+    def company(self) -> "CompanyEndpoint":
+        from pyironscales.endpoints.ironscales.CompanyEndpoint import CompanyEndpoint
+
+        return CompanyEndpoint(self)
+
+    @property
+    def emails(self) -> "EmailsEndpoint":
+        from pyironscales.endpoints.ironscales.EmailsEndpoint import EmailsEndpoint
+
+        return EmailsEndpoint(self)
+
+    @property
+    def incident(self) -> "IncidentEndpoint":
+        from pyironscales.endpoints.ironscales.IncidentEndpoint import IncidentEndpoint
+
+        return IncidentEndpoint(self)
+
+    @property
+    def integrations(self) -> "IntegrationsEndpoint":
+        from pyironscales.endpoints.ironscales.IntegrationsEndpoint import IntegrationsEndpoint
+
+        return IntegrationsEndpoint(self)
 
     def _get_url(self) -> str:
         """
@@ -61,17 +85,16 @@ class IronscalesAPIClient(IronscalesClient):
             "POST",
             f"{self._get_url()}/get-token/",
             data={
-                "key": self.privatekey,
-                "scopes": self.scope
+            "key": self.privatekey,
+            "scopes": self.scopes
                 },
             headers={
                 "Content-Type": "application/json",
-                "Accept": "application/json"
                 },
         )
         auth_resp_json = auth_response.json()
         token = auth_resp_json["jwt"]
-        expires_in_sec = auth_resp_json["expires_in"]
+        expires_in_sec = 43200
         self.token_expiry_time = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in_sec)
         return token
 
