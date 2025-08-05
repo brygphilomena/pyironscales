@@ -52,20 +52,20 @@ def parse_response_body(
         print(pagination_info)
         # Output: {'first_page': 1, 'next_page': 2, 'has_next_page': True}
     """
-    if body.get("current_page") is None:
+    if body.get("page") is None:
         return None
     has_next_page: bool = False
     has_prev_page: bool = False
     first_page: int | None = None
     prev_page: int | None = None
-    current_page: int | None = None
+    page: int | None = None
     current_page_count: int | None = None
     limit: int | None = None
     total_count: int | None = None
     next_page: int | None = None
     next_page_url: str | None = None
     next_page_token: str | None = None
-    last_page: int | None = None
+    total_pages: int | None = None
 
     result = {}
 
@@ -74,41 +74,25 @@ def parse_response_body(
 
     if body.get("prev_page") is not None:
         result["prev_page"] = body.get("prev_page")
-    elif body.get("current_page") is not None:
-        if body.get("current_page") > 1:
-            result["prev_page"] = body.get("current_page") - 1
-    elif body.get("currentPage") is not None:
-        if body.get("currentPage") > 1:
-            result["prev_page"] = body.get("currentPage") - 1
+    elif body.get("page") is not None:
+        if body.get("page") > 1:
+            result["prev_page"] = body.get("page") - 1
 
     if body.get("next_page") is not None:
         result["next_page"] = body.get("next_page")
     elif body.get("currentPage") is not None and body.get("currentPage") < body.get("lastPage"):
         result["next_page"] = body.get("currentPage") + 1
 
-    if body.get("last_page") is not None:
-        result["last_page"] = body.get("last_page")
-    elif body.get("lastPage") is not None:
-        result["last_page"] = body.get("lastPage")
-    elif body.get("last_page") is None and body.get("current_page") is not None:
-        result["last_page"] = math.ceil(body.get("total_count")/body.get("limit"))
+    if body.get("total_pages") is not None:
+        result["last_page"] = body.get("total_pages")
 
-    if body.get("has_next_page"):
-        result["has_next_page"] = body.get("has_next_page")
-    elif body.get("current_page") is not None and body.get("next_page") is not None:
-        result["has_next_page"] = True
-    elif body.get("current_page") is not None and body.get("next_page") is None:
+    if body.get("page") is not None and body.get("page") == body.get("total_pages"):
         result["has_next_page"] = False
-    elif body.get("currentPage") is not None and body.get("currentPage") < body.get("lastPage"):
+    elif body.get("page") is not None and body.get("page") < body.get("total_pages"):
         result["has_next_page"] = True
     
-    if body.get("has_prev_page"):
-        result["has_prev_page"] = body.get("has_prev_page")
-    elif body.get("current_page") is not None:
-        if body.get("current_page") > 1:
-            result["has_prev_page"] = True
-    elif body.get("currentPage") is not None:
-        if body.get("currentPage") > 1:
+    if body.get("page") is not None:
+        if body.get("page") > 1:
             result["has_prev_page"] = True
 
     return result

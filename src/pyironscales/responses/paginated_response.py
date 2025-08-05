@@ -42,7 +42,6 @@ class PaginatedResponse(Generic[TModel]):
         endpointmodel: IPaginateable,
         endpoint: str,
         page: int,
-        limit: int,
         params: RequestParams | None = None,
     ) -> None:
         """
@@ -58,7 +57,7 @@ class PaginatedResponse(Generic[TModel]):
         expected model type for the response data. This allows for type-safe handling
         of model instances throughout the class.
         """
-        self._initialize(response, response_model, endpointmodel, endpoint, page, limit, params)
+        self._initialize(response, response_model, endpointmodel, endpoint, page, params)
 
     def _initialize(
         self,
@@ -67,7 +66,6 @@ class PaginatedResponse(Generic[TModel]):
         endpointmodel: IPaginateable,
         endpoint: str,
         page: int,
-        limit: int,
         params: RequestParams | None = None,
     ):
         """
@@ -77,35 +75,36 @@ class PaginatedResponse(Generic[TModel]):
             response: The raw response object from the API.
             endpointmodel (IronscalesEndpoint[TModel]): The endpointmodel associated with the response.
             endpoint: The endpoint url to extract the data
-            limit (int): The number of items per page.
         """
         self.response = response
         self.response_model = response_model
         self.endpointmodel = endpointmodel
         self.endpoint = endpoint
-        self.limit = limit
         # Get page data from the response body
         try:
-            self.parsed_pagination_response = parse_response_body(json.loads(response.content.decode('utf-8')).get('pagination', {}))
+            self.parsed_pagination_response = parse_response_body(json.loads(response.content.decode('utf-8')))
         except:
-            self.parsed_pagination_response = parse_response_body(json.loads(response.content.decode('utf-8')).get('meta.page', {}))
+            pass
         self.params = params
-        if self.parsed_pagination_response is not None:
-            # Ironscales API gives us a handy response to parse for Pagination
-            self.has_next_page: bool = self.parsed_pagination_response.get("has_next_page", False)
-            self.has_prev_page: bool = self.parsed_pagination_response.get("has_prev_page", False)
-            self.first_page: int = self.parsed_pagination_response.get("first_page", None)
-            self.prev_page: int = self.parsed_pagination_response.get("prev_page", None)
-            self.next_page: int = self.parsed_pagination_response.get("next_page", None)
-            self.last_page: int = self.parsed_pagination_response.get("last_page", None)
-        else:
-            # Haven't worked on this yet
-            self.has_next_page: bool = True
-            self.has_prev_page: bool = page > 1
-            self.first_page: int = 1
-            self.prev_page = page - 1 if page > 1 else 1
-            self.next_page = page + 1
-            self.last_page = 999999
+        try:
+            if self.parsed_pagination_response is not None:
+                # Ironscales API gives us a handy response to parse for Pagination
+                self.has_next_page: bool = self.parsed_pagination_response.get("has_next_page", False)
+                self.has_prev_page: bool = self.parsed_pagination_response.get("has_prev_page", False)
+                self.first_page: int = self.parsed_pagination_response.get("first_page", None)
+                self.prev_page: int = self.parsed_pagination_response.get("prev_page", None)
+                self.next_page: int = self.parsed_pagination_response.get("next_page", None)
+                self.last_page: int = self.parsed_pagination_response.get("last_page", None)
+            else:
+                # Haven't worked on this yet
+                self.has_next_page: bool = True
+                self.has_prev_page: bool = page > 1
+                self.first_page: int = 1
+                self.prev_page = page - 1 if page > 1 else 1
+                self.next_page = page + 1
+                self.last_page = 999999
+        except:
+            pass
         self.data: list[TModel] = [response_model.model_validate(d) for d in response.json().get(endpoint, {})]
         self.has_data = self.data and len(self.data) > 0
         self.index = 0
@@ -122,14 +121,13 @@ class PaginatedResponse(Generic[TModel]):
             self.has_data = False
             return self
 
-        next_response = self.endpointmodel.paginated(self.next_page, self.limit, self.params)
+        next_response = self.endpointmodel.paginated(self.next_page, self.params)
         self._initialize(
             next_response.response,
             next_response.response_model,
             next_response.endpointmodel,
             next_response.endpoint,
             self.next_page,
-            next_response.limit,
             self.params,
         )
         return self
@@ -146,13 +144,12 @@ class PaginatedResponse(Generic[TModel]):
             self.has_data = False
             return self
 
-        prev_response = self.endpointmodel.paginated(self.prev_page, self.limit, self.params)
+        prev_response = self.endpointmodel.paginated(self.prev_page, self.params)
         self._initialize(
             prev_response.response,
             prev_response.response_model,
             prev_response.endpointmodel,
             self.prev_page,
-            prev_response.limit,
             self.params,
         )
         return self

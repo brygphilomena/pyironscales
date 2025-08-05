@@ -11,6 +11,10 @@ if typing.TYPE_CHECKING:
     from pyironscales.endpoints.ironscales.EmailsEndpoint import EmailsEndpoint
     from pyironscales.endpoints.ironscales.IncidentEndpoint import IncidentEndpoint
     from pyironscales.endpoints.ironscales.IntegrationsEndpoint import IntegrationsEndpoint
+    from pyironscales.endpoints.ironscales.MailboxesEndpoint import MailboxesEndpoint
+    from pyironscales.endpoints.ironscales.MitigationEndpoint import MitigationEndpoint
+    from pyironscales.endpoints.ironscales.PlanDetailsEndpoint import PlanDetailsEndpoint
+    from pyironscales.endpoints.ironscales.SettingsEndpoint import SettingsEndpoint
 
 
 class IronscalesAPIClient(IronscalesClient):
@@ -67,6 +71,30 @@ class IronscalesAPIClient(IronscalesClient):
         from pyironscales.endpoints.ironscales.IntegrationsEndpoint import IntegrationsEndpoint
 
         return IntegrationsEndpoint(self)
+
+    @property
+    def mailboxes(self) -> "MailboxesEndpoint":
+        from pyironscales.endpoints.ironscales.MailboxesEndpoint import MailboxesEndpoint
+
+        return MailboxesEndpoint(self)
+
+    @property
+    def mitigation(self) -> "MitigationEndpoint":
+        from pyironscales.endpoints.ironscales.MitigationEndpoint import MitigationEndpoint
+
+        return MitigationEndpoint(self)
+
+    @property
+    def plan_details(self) -> "PlanDetailsEndpoint":
+        from pyironscales.endpoints.ironscales.PlanDetailsEndpoint import PlanDetailsEndpoint
+
+        return PlanDetailsEndpoint(self)
+
+    @property
+    def settings(self) -> "SettingsEndpoint":
+        from pyironscales.endpoints.ironscales.SettingsEndpoint import SettingsEndpoint
+
+        return SettingsEndpoint(self)
 
     def _get_url(self) -> str:
         """

@@ -1,8 +1,10 @@
 from pyironscales.endpoints.base.base_endpoint import IronscalesEndpoint
 from pyironscales.interfaces import (
     IGettable,
+    IPaginateable,
 )
 from pyironscales.models.ironscales import CompanyMailboxes
+from pyironscales.responses.paginated_response import PaginatedResponse
 from pyironscales.types import (
     JSON,
     IronscalesRequestParams,
@@ -12,10 +14,39 @@ from pyironscales.types import (
 class CompanyIdAutoSyncMailboxesEndpoint(
     IronscalesEndpoint,
     IGettable[CompanyMailboxes, IronscalesRequestParams],
+    IPaginateable[CompanyMailboxes, IronscalesRequestParams],
 ):
     def __init__(self, client, parent_endpoint=None) -> None:
         IronscalesEndpoint.__init__(self, client, "mailboxes/", parent_endpoint=parent_endpoint)
         IGettable.__init__(self, CompanyMailboxes)
+        IPaginateable.__init__(self, CompanyMailboxes)
+
+    def paginated(
+        self,
+        page: int,
+        params: IronscalesRequestParams | None = None,
+    ) -> PaginatedResponse[CompanyMailboxes]:
+        """
+        Performs a GET request against the /company/{id}/auto-sync/mailboxes/ endpoint and returns an initialized PaginatedResponse object.
+
+        Parameters:
+            page (int): The page number to request.
+            params (dict[str, int | str]): The parameters to send in the request query string.
+        Returns:
+            PaginatedResponse[CompanyMailboxes]: The initialized PaginatedResponse object.
+        """
+        if params:
+            params["page"] = page
+        else:
+            params = {"page": page}
+        return PaginatedResponse(
+            super()._make_request("GET", params=params),
+            CompanyMailboxes,
+            self,
+            "emails",
+            page,
+            params,
+        )
 
     def get(
         self,
