@@ -154,12 +154,6 @@ class CompanyStatisticsAndLicense(IronscalesModel):
     activeMailboxes: bool | None = Field(default=None, alias="activeMailboxes")
     lastMailboxSyncDate: datetime | None = Field(default=None, alias="lastMailboxSyncDate")
 
-class CompanyStatsRemediationStatuses(IronscalesModel):
-    phishing: dict[str, int] | None = Field(default=None, alias="Phishing")
-    spam: dict[str, int] | None = Field(default=None, alias="Spam")
-    safe: dict[str, int] | None = Field(default=None, alias="Safe")
-    unclassified: dict[str, int] | None = Field(default=None, alias="Unclassified")
-
 class EscalatedEmails(IronscalesModel):
     arrival_date: datetime | None = Field(default=None, alias="ArrivalDate")
     incident_id: int | None = Field(default=None, alias="IncidentId")

@@ -1,5 +1,4 @@
 from pyironscales.endpoints.base.base_endpoint import IronscalesEndpoint
-from pyironscales.endpoints.ironscales.CompanyIdStatsRemediationStatusesEndpoint import CompanyIdStatsRemediationStatusesEndpoint
 from pyironscales.interfaces import (
     IGettable,
 )
@@ -17,7 +16,6 @@ class CompanyIdStatsEndpoint(
     def __init__(self, client, parent_endpoint=None) -> None:
         IronscalesEndpoint.__init__(self, client, "stats/", parent_endpoint=parent_endpoint)
         IGettable.__init__(self, CompanyStatisticsAndLicense)
-        self.remediation_statuses = self._register_child_endpoint(CompanyIdStatsRemediationStatusesEndpoint(client, parent_endpoint=self))
 
     def get(
         self,
