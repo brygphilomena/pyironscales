@@ -14,7 +14,7 @@ class IncidentIdStatsRemediationStatusesEndpoint(
     IGettable[RemediationStatusesStats, IronscalesRequestParams],
 ):
     def __init__(self, client, parent_endpoint=None) -> None:
-        IronscalesEndpoint.__init__(self, client, "*", parent_endpoint=parent_endpoint)
+        IronscalesEndpoint.__init__(self, client, "remediation-statuses/", parent_endpoint=parent_endpoint)
         IGettable.__init__(self, RemediationStatusesStats)
 
     def get(
@@ -23,7 +23,7 @@ class IncidentIdStatsRemediationStatusesEndpoint(
         params: IronscalesRequestParams | None = None,
     ) -> RemediationStatusesStats:
         """
-        Performs a GET request against the /incident/{id}/stats/remediation-statuses endpoint.
+        Performs a GET request against the /incident/{id}/stats/remediation-statuses/ endpoint.
 
         Parameters:
             data (dict[str, Any]): The data to send in the request body.
